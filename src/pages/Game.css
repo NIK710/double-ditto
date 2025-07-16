@@ -1,0 +1,67 @@
+.game-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 50%, #4338ca 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.game-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.game-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.game-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0;
+}
+
+.game-subtitle {
+  color: #6b7280;
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.game-icon {
+  width: 4rem;
+  height: 4rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-emoji {
+  color: white;
+  font-size: 1.5rem;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .game-card {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .game-title {
+    font-size: 2rem;
+  }
+} 
