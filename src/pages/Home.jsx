@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createGame } from '../services/gameService';
 import './Home.css';
 
@@ -8,23 +9,25 @@ function Home() {
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleCreateGame = async () => {
     if (!playerName.trim()) {
       setError('Please enter your name');
       return;
     }
-
     setIsCreating(true);
     setError('');
-
     try {
-      // Generate a simple player ID for now
+      // Generate a unique playerId with timestamp and random string
       const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const gameId = await createGame(playerId, playerName.trim());
-      
-      // For now, just show the game code
-      alert(`Game created! Share this code with others: ${gameId}`);
+      // Store player info in sessionStorage for persistence per tab
+      sessionStorage.setItem('playerId', playerId);
+      sessionStorage.setItem('playerName', playerName.trim());
+      sessionStorage.setItem('gameId', gameId);
+      sessionStorage.setItem('sessionId', Date.now().toString()); // Unique session ID
+      navigate(`/lobby/${gameId}`);
     } catch (err) {
       setError('Failed to create game. Please try again.');
       console.error('Error creating game:', err);
@@ -38,13 +41,16 @@ function Home() {
       setError('Please enter both your name and the game code');
       return;
     }
-
     setIsJoining(true);
     setError('');
-
     try {
-      // TODO: Implement join game functionality
-      alert(`Joining game: ${joinCode.toUpperCase()}`);
+      // Generate a unique playerId for this session
+      const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('playerId', playerId);
+      sessionStorage.setItem('playerName', playerName.trim());
+      sessionStorage.setItem('gameId', joinCode.trim().toUpperCase());
+      sessionStorage.setItem('sessionId', Date.now().toString()); // Unique session ID
+      navigate(`/lobby/${joinCode.trim().toUpperCase()}`);
     } catch (err) {
       setError('Failed to join game. Please check the code and try again.');
       console.error('Error joining game:', err);
@@ -61,7 +67,6 @@ function Home() {
           <h1 className="home-title">Double Ditto</h1>
           <p className="home-subtitle">Create or join a game</p>
         </div>
-
         {/* Player Name Input */}
         <div className="input-group">
           <label htmlFor="playerName" className="input-label">
@@ -77,7 +82,6 @@ function Home() {
             maxLength={20}
           />
         </div>
-
         {/* Create Game Section */}
         <div className="section">
           <h2 className="section-title">Create New Game</h2>
@@ -89,12 +93,10 @@ function Home() {
             {isCreating ? 'Creating...' : 'Create Game'}
           </button>
         </div>
-
         {/* Divider */}
         <div className="divider">
           <span className="divider-text">OR</span>
         </div>
-
         {/* Join Game Section */}
         <div className="section">
           <h2 className="section-title">Join Existing Game</h2>
@@ -120,14 +122,12 @@ function Home() {
             {isJoining ? 'Joining...' : 'Join Game'}
           </button>
         </div>
-
         {/* Error Message */}
         {error && (
           <div className="error-message">
             {error}
           </div>
         )}
-
         {/* Game Rules Preview */}
         <div className="rules-section">
           <h3 className="rules-title">How to Play</h3>

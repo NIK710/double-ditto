@@ -26,6 +26,96 @@
 
 .lobby-subtitle {
   color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.lobby-players-section {
+  margin-top: 2rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.lobby-players-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.lobby-players-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lobby-player,
+.lobby-player-me {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 0.5rem;
+  background: #ede9fe;
+  color: #4b2995;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.lobby-player-me {
+  background: #c7d2fe;
+  color: #1e40af;
+  font-weight: 700;
+}
+
+.lobby-player-you {
+  color: #059669;
+  font-size: 0.95em;
+  margin-left: 0.5em;
+}
+
+.lobby-player-host {
+  color: #f59e42;
+  font-size: 0.95em;
+  margin-left: 0.5em;
+}
+
+.lobby-start-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.btn:hover {
+  transform: scale(1.02);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: scale(1);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6d28d9 0%, #2563eb 100%);
 }
 
 /* Responsive design */
@@ -33,5 +123,8 @@
   .lobby-card {
     padding: 1.5rem;
     margin: 1rem;
+  }
+  .lobby-players-section {
+    padding: 0.5rem;
   }
 } 
