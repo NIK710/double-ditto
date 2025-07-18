@@ -22,7 +22,6 @@ function Lobby() {
       navigate('/');
       return;
     }
-    
     // Only join if we haven't already joined and the player is not in the list
     if (!hasJoined) {
       const isPlayerInGame = players.some(p => p.name === playerName);
@@ -33,7 +32,6 @@ function Lobby() {
         setHasJoined(true);
       }
     }
-    
     // Remove player only when closing the tab
     const handleBeforeUnload = async () => {
       await removePlayer(gameId, playerId);
@@ -45,7 +43,7 @@ function Lobby() {
     // eslint-disable-next-line
   }, [gameId, playerId, playerName, hasJoined, players]);
 
-  // Listen for player list updates
+  // Listen for player list updates and game status
   useEffect(() => {
     if (!gameId) return;
     const gameRef = doc(db, 'games', gameId);
@@ -56,28 +54,30 @@ function Lobby() {
         setLoading(false);
         return;
       }
+      // Redirect to game page if status is 'playing'
+      if (data.status === 'playing') {
+        navigate(`/game/${gameId}`);
+        return;
+      }
       const playerList = data.players ? Object.values(data.players) : [];
       setPlayers(playerList);
-      
       // Check if current player is host by looking up their specific playerId
       const currentPlayer = data.players?.[playerId];
       setIsHost(currentPlayer?.isHost || false);
-      
       setLoading(false);
     });
     return () => unsub();
-  }, [gameId, playerId]);
+  }, [gameId, playerId, navigate]);
 
   const handleStartGame = async () => {
     if (!isHost) return;
-    
     setStartingGame(true);
     try {
       const gameRef = doc(db, 'games', gameId);
       await updateDoc(gameRef, {
         status: 'playing'
       });
-      navigate(`/game/${gameId}`);
+      // Host will be redirected by the listener
     } catch (error) {
       console.error('Error starting game:', error);
       setStartingGame(false);
@@ -106,7 +106,6 @@ function Lobby() {
             </ul>
           )}
         </div>
-        
         {isHost && (
           <div className="lobby-start-section">
             <button 
