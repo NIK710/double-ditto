@@ -24,6 +24,7 @@ function Game() {
   const [round, setRound] = useState(1);
   const [gameOver, setGameOver] = useState(false);
   const [allSubmitted, setAllSubmitted] = useState(false);
+  const [playerScore, setPlayerScore] = useState(0);
 
   // Listen to the game doc for the prompt, round, and host status
   useEffect(() => {
@@ -38,12 +39,14 @@ function Game() {
         // Host detection
         const player = data.players?.[playerId];
         setIsHost(player?.isHost || false);
-        setLoadingPrompt(false); // <-- always set to false when data exists
+        setPlayerScore(player?.score || 0);
+        setLoadingPrompt(false);
       } else {
         setPrompt(null);
         setRound(1);
         setGameOver(false);
         setIsHost(false);
+        setPlayerScore(0);
         setLoadingPrompt(true);
       }
     });
@@ -86,6 +89,41 @@ function Game() {
     return () => unsub();
   }, [gameId, round]);
 
+  // Host: score the round when all players have submitted and not already scored
+  useEffect(() => {
+    if (!isHost || !allSubmitted || gameOver) return;
+    const scoreRound = async () => {
+      const gameRef = doc(db, 'games', gameId);
+      const gameSnap = await getDoc(gameRef);
+      const data = gameSnap.data();
+      if (!data || data.scored) return; // already scored this round
+      const players = data.players || {};
+      // Calculate scores (unique answer matches only)
+      const scoreUpdates = {};
+      Object.entries(players).forEach(([pid, player]) => {
+        const theirAnswers = (player.answers || []).map(a => a.trim().toLowerCase());
+        // Pool of all other players' answers
+        const othersAnswers = Object.entries(players)
+          .filter(([otherId]) => otherId !== pid)
+          .flatMap(([, p]) => (p.answers || []).map(a => a.trim().toLowerCase()));
+        let matches = 0;
+        theirAnswers.forEach(ans => {
+          if (ans && othersAnswers.includes(ans)) matches++;
+        });
+        let increment = 0;
+        if (matches === 1) increment = 1;
+        if (matches === 2) increment = 3;
+        scoreUpdates[`players.${pid}.score`] = (player.score || 0) + increment;
+      });
+      await updateDoc(gameRef, {
+        ...scoreUpdates,
+        scored: true
+      });
+    };
+    scoreRound();
+    // eslint-disable-next-line
+  }, [isHost, allSubmitted, gameOver, gameId, round]);
+
   // Handle answer submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -115,10 +153,11 @@ function Game() {
     // Pick a random prompt
     const randomDoc = promptDocs[getRandomInt(promptDocs.length)];
     const promptData = randomDoc.data();
-    // Reset all players' answers and hasSubmitted
+    // Get all players and their answers
     const gameRef = doc(db, 'games', gameId);
     const gameSnap = await getDoc(gameRef);
     const players = gameSnap.data()?.players || {};
+    // Reset all players' answers and hasSubmitted
     const resetPlayers = {};
     Object.keys(players).forEach(pid => {
       resetPlayers[`players.${pid}.answers`] = [];
@@ -127,7 +166,8 @@ function Game() {
     await updateDoc(gameRef, {
       ...resetPlayers,
       prompt: promptData,
-      round: round + 1
+      round: round + 1,
+      scored: false
     });
   };
 
@@ -137,6 +177,7 @@ function Game() {
         <div className="game-content">
           <h1 className="game-title">Double Ditto</h1>
           <div className="game-round">{gameOver ? 'Game Over!' : `Round ${round} of ${maxRounds}`}</div>
+          <div className="game-score">Score: {playerScore}</div>
           {loadingPrompt ? (
             <p>Loading prompt...</p>
           ) : (

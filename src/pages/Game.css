@@ -178,6 +178,13 @@
   font-size: 1.5rem;
 }
 
+.game-score {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 1rem;
+}
+
 /* Responsive design */
 @media (max-width: 900px) {
   .game-container {
