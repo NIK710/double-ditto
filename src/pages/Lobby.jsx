@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/firebase';
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { joinGame, removePlayer } from '../services/gameService';
 import './Lobby.css';
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
 
 function Lobby() {
   const { gameId } = useParams();
@@ -69,13 +73,24 @@ function Lobby() {
     return () => unsub();
   }, [gameId, playerId, navigate]);
 
+  // Start game: select a random prompt and store it in the game doc
   const handleStartGame = async () => {
     if (!isHost) return;
     setStartingGame(true);
     try {
+      // Fetch all prompts
+      const promptsRef = collection(db, 'prompts');
+      const snapshot = await getDocs(promptsRef);
+      const promptDocs = snapshot.docs;
+      if (promptDocs.length === 0) throw new Error('No prompts found');
+      // Pick a random prompt
+      const randomDoc = promptDocs[getRandomInt(promptDocs.length)];
+      const promptData = randomDoc.data();
+      // Update game doc with status and prompt
       const gameRef = doc(db, 'games', gameId);
       await updateDoc(gameRef, {
-        status: 'playing'
+        status: 'playing',
+        prompt: promptData
       });
       // Host will be redirected by the listener
     } catch (error) {
