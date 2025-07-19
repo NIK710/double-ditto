@@ -69,3 +69,7 @@ function generateJoinCode(length = 4) {
 }
 
 import { deleteField } from "firebase/firestore";
+
+export function normalizeAnswer(str) {
+  return (str || '').toLowerCase().replace(/[^a-z]/g, '');
+}

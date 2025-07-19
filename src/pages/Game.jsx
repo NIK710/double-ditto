@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/firebase';
 import { doc, getDoc, updateDoc, collection, getDocs, onSnapshot } from 'firebase/firestore';
+import { normalizeAnswer } from '../services/gameService';
 import './Game.css';
 
 const maxRounds = 3;
@@ -109,14 +110,14 @@ function Game() {
       const data = gameSnap.data();
       if (!data || data.scored) return; // already scored this round
       const players = data.players || {};
-      // Calculate scores (unique answer matches only)
+      // Calculate scores (unique answer matches only, normalized)
       const scoreUpdates = {};
       Object.entries(players).forEach(([pid, player]) => {
-        const theirAnswers = (player.answers || []).map(a => a.trim().toLowerCase());
+        const theirAnswers = (player.answers || []).map(a => normalizeAnswer(a));
         // Pool of all other players' answers
         const othersAnswers = Object.entries(players)
           .filter(([otherId]) => otherId !== pid)
-          .flatMap(([, p]) => (p.answers || []).map(a => a.trim().toLowerCase()));
+          .flatMap(([, p]) => (p.answers || []).map(a => normalizeAnswer(a)));
         let matches = 0;
         theirAnswers.forEach(ans => {
           if (ans && othersAnswers.includes(ans)) matches++;
@@ -140,7 +141,8 @@ function Game() {
     e.preventDefault();
     if (!answerInput.trim() || answers.length >= 2 || hasSubmitted) return;
     setSubmitting(true);
-    const newAnswers = [...answers, answerInput.trim()];
+    const normalized = normalizeAnswer(answerInput.trim());
+    const newAnswers = [...answers, normalized];
     setAnswers(newAnswers);
     setAnswerInput('');
     // Update Firestore
