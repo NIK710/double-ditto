@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createGame } from '../services/gameService';
+import { db } from '../services/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import './Home.css';
 
 function Home() {
@@ -44,6 +46,14 @@ function Home() {
     setIsJoining(true);
     setError('');
     try {
+      // Check if game exists
+      const gameRef = doc(db, 'games', joinCode.trim().toUpperCase());
+      const gameSnap = await getDoc(gameRef);
+      if (!gameSnap.exists()) {
+        setError('Game code not found. Please check the code and try again.');
+        setIsJoining(false);
+        return;
+      }
       // Generate a unique playerId for this session
       const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       sessionStorage.setItem('playerId', playerId);

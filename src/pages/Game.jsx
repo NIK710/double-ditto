@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/firebase';
 import { doc, getDoc, updateDoc, collection, getDocs, onSnapshot } from 'firebase/firestore';
 import './Game.css';
@@ -12,6 +12,7 @@ function getRandomInt(max) {
 
 function Game() {
   const { gameId } = useParams();
+  const navigate = useNavigate();
   const playerId = sessionStorage.getItem('playerId');
   const [prompt, setPrompt] = useState(null);
   const [answerInput, setAnswerInput] = useState('');
@@ -25,8 +26,9 @@ function Game() {
   const [gameOver, setGameOver] = useState(false);
   const [allSubmitted, setAllSubmitted] = useState(false);
   const [playerScore, setPlayerScore] = useState(0);
+  const [gameStatus, setGameStatus] = useState('playing');
 
-  // Listen to the game doc for the prompt, round, and host status
+  // Listen to the game doc for the prompt, round, host status, and status
   useEffect(() => {
     if (!gameId) return;
     const gameRef = doc(db, 'games', gameId);
@@ -36,6 +38,7 @@ function Game() {
         setPrompt(data.prompt);
         setRound(data.round || 1);
         setGameOver(data.round > maxRounds);
+        setGameStatus(data.status || 'playing');
         // Host detection
         const player = data.players?.[playerId];
         setIsHost(player?.isHost || false);
@@ -47,11 +50,19 @@ function Game() {
         setGameOver(false);
         setIsHost(false);
         setPlayerScore(0);
+        setGameStatus('playing');
         setLoadingPrompt(true);
       }
     });
     return () => unsub();
   }, [gameId, playerId]);
+
+  // Redirect to leaderboard if game is finished
+  useEffect(() => {
+    if (gameStatus === 'finished') {
+      navigate(`/leaderboard/${gameId}`);
+    }
+  }, [gameStatus, gameId, navigate]);
 
   // Fetch player's answers and hasSubmitted status on mount and on round change
   useEffect(() => {
@@ -142,9 +153,15 @@ function Game() {
     setSubmitting(false);
   };
 
-  // Host: go to next round
+  // Host: go to next round or finish game
   const handleNextRound = async () => {
-    if (!isHost || !allSubmitted || round >= maxRounds) return;
+    if (!isHost || !allSubmitted) return;
+    const gameRef = doc(db, 'games', gameId);
+    if (round >= maxRounds) {
+      // Finish game: set status to 'finished'
+      await updateDoc(gameRef, { status: 'finished' });
+      return;
+    }
     // Fetch all prompts
     const promptsRef = collection(db, 'prompts');
     const snapshot = await getDocs(promptsRef);
@@ -154,7 +171,6 @@ function Game() {
     const randomDoc = promptDocs[getRandomInt(promptDocs.length)];
     const promptData = randomDoc.data();
     // Get all players and their answers
-    const gameRef = doc(db, 'games', gameId);
     const gameSnap = await getDoc(gameRef);
     const players = gameSnap.data()?.players || {};
     // Reset all players' answers and hasSubmitted
@@ -231,7 +247,7 @@ function Game() {
               <button
                 className="btn btn-primary game-next-round-btn"
                 onClick={handleNextRound}
-                disabled={round >= maxRounds}
+                disabled={round > maxRounds}
               >
                 {round < maxRounds ? 'Next Round' : 'Finish Game'}
               </button>
