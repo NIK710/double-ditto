@@ -5,7 +5,7 @@ import { doc, getDoc, updateDoc, collection, getDocs, onSnapshot } from 'firebas
 import { normalizeAnswer } from '../services/gameService';
 import './Game.css';
 
-const maxRounds = 10;
+const maxRounds = 7;
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
