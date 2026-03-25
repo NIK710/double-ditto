@@ -19,7 +19,6 @@ Coming soon
 **Frontend**
 - React (Vite)  
 - JavaScript  
-- Tailwind CSS  
 
 **Backend / Infrastructure**
 - Firebase Firestore  
@@ -33,17 +32,6 @@ Coming soon
 4. Players submit answers within a time limit  
 5. Matching answers earn points  
 6. Scores update in real time  
-
-## Project Structure
-
-```
-/src
-  /components
-  /pages
-  /hooks
-  /firebase
-  /utils
-```
 
 ## Getting Started
 
