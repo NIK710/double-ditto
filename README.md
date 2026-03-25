@@ -3,7 +3,7 @@
 Double Ditto is a real-time multiplayer party game where players try to match answers with others. Given a prompt, players score points by submitting answers that at least one other player also chooses.
 
 ## Live Demo
-Coming soon
+https://double-ditto-18638.web.app/
 
 ## Features
 
